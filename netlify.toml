@@ -1,0 +1,11 @@
+# Netlify auto-detects Next.js and applies its runtime, so this file only
+# pins the parts worth being explicit about.
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# The site builds entirely from the JSON committed under data/ — no ESPN
+# credentials are needed here, and none should ever be added.
