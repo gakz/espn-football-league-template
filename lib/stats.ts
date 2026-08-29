@@ -349,7 +349,7 @@ function nameOf(data: LeagueData, ids: string[]): string {
   const names = ids
     .map((id) => data.managers.find((m) => m.id === id)?.name)
     .filter((n): n is string => Boolean(n));
-  return names.length > 0 ? names.join(" & ") : "Unknown manager";
+  return names.length > 0 ? names.join(" & ") : "Unknown team";
 }
 
 const pts = (n: number) => n.toFixed(2);

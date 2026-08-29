@@ -11,7 +11,7 @@ The app does not read `data/league.json` in production.
 |---|---|---|
 | `raw/<year>.json` | `npm run ingest` | Local/debug untouched ESPN payload for one season |
 | `league.json` | `npm run ingest` | Local/debug normalized model |
-| `owners.json` | you, by hand | Manager identity fixes |
+| `owners.json` | you, by hand | Team display and identity fixes |
 
 ## Why the raw payloads are kept
 
@@ -21,14 +21,15 @@ head-to-head grid later can reuse the saved ESPN payloads.
 
 ## owners.json
 
-Managers are keyed by their ESPN member GUID, because team names change every
-season and can't identify anyone. Two things still need a human:
+Careers are keyed by ESPN member GUID, even though the site displays fantasy
+team names. Team names change, so GUIDs are still the stable identity. Two
+things still need a human:
 
 ```json
 {
   "managers": {
     "AAAAAAAA-1111-2222-3333-444444444444": {
-      "name": "The name to display",
+      "name": "Optional custom display name",
       "slug": "optional-custom-url",
       "aliases": ["BBBBBBBB-5555-6666-7777-888888888888"]
     }

@@ -99,10 +99,10 @@ async function main() {
     `\nWrote ${league.seasons.length} seasons and ${league.managers.length} managers to data/league.json`,
   );
 
-  const unnamed = league.managers.filter((m) => m.name === "Unknown manager");
+  const unnamed = league.managers.filter((m) => m.name === "Unknown team");
   if (unnamed.length > 0) {
     console.log(
-      `\n${unnamed.length} manager(s) have no display name from ESPN. Add them to data/owners.json:\n` +
+      `\n${unnamed.length} team(s) have no display name from ESPN. Add them to data/owners.json:\n` +
         unnamed.map((m) => `  "${m.id}": { "name": "..." }`).join("\n"),
     );
   }

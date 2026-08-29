@@ -64,10 +64,28 @@ export function buildManagerIndex(
     overrides.set(key, resolve(guid));
   }
 
-  // Collect display names from every season's member list. Later seasons win,
-  // so a manager who changed their ESPN display name shows up by their current
-  // one rather than whatever they picked in 2014.
-  const names = new Map<string, string>();
+  const ownersForTeam = (seasonId: number | undefined, team: EspnTeam): string[] => {
+    const override =
+      seasonId === undefined ? undefined : overrides.get(`${seasonId}:${team.id}`);
+    if (override) return [override];
+
+    const owners = (team.owners ?? []).map(resolve);
+    // Put the primary owner first so a co-managed team has a stable ordering.
+    const primary = team.primaryOwner ? resolve(team.primaryOwner) : undefined;
+    const ordered = primary ? [primary, ...owners] : owners;
+    return [...new Set(ordered)];
+  };
+
+  const teamName = (team: EspnTeam): string => {
+    const combined =
+      team.name?.trim() || [team.location, team.nickname].filter(Boolean).join(" ").trim();
+    return combined || `Team ${team.id ?? "?"}`;
+  };
+
+  // The site displays fantasy team names, not ESPN account display names.
+  // Later seasons win, so a renamed team shows its current name.
+  const teamNames = new Map<string, string>();
+  const accountNames = new Map<string, string>();
   const seen = new Set<string>();
   for (const raw of rawSeasons) {
     let league: EspnLeague;
@@ -83,13 +101,14 @@ export function buildManagerIndex(
       const name =
         member.displayName?.trim() ||
         [member.firstName, member.lastName].filter(Boolean).join(" ").trim();
-      if (name) names.set(id, name);
+      if (name) accountNames.set(id, name);
     }
-    // Some pre-2018 payloads omit `members` entirely but still list owners on
-    // the teams, so a manager can exist with no name of their own.
+
     for (const team of league.teams ?? []) {
-      for (const owner of team.owners ?? []) seen.add(resolve(owner));
-      if (team.primaryOwner) seen.add(resolve(team.primaryOwner));
+      for (const id of ownersForTeam(league.seasonId, team)) {
+        seen.add(id);
+        teamNames.set(id, teamName(team));
+      }
     }
   }
 
@@ -99,7 +118,7 @@ export function buildManagerIndex(
   const managers: Manager[] = [...seen]
     .map((id) => {
       const override = config.managers?.[id] ?? config.managers?.[`{${id}}`];
-      const name = override?.name ?? names.get(id) ?? "Unknown manager";
+      const name = override?.name ?? teamNames.get(id) ?? accountNames.get(id) ?? "Unknown team";
       return { id, name, slug: override?.slug ?? slugify(name) };
     })
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -111,15 +130,8 @@ export function buildManagerIndex(
     });
 
   const forTeam = (seasonId: number, team: EspnTeam): string[] => {
-    const override = overrides.get(`${seasonId}:${team.id}`);
-    if (override) return [override];
-
-    const owners = (team.owners ?? []).map(resolve);
-    // Put the primary owner first so a co-managed team has a stable "whose
-    // team was this really" ordering for display.
-    const primary = team.primaryOwner ? resolve(team.primaryOwner) : undefined;
-    const ordered = primary ? [primary, ...owners] : owners;
-    if (ordered.length > 0) return [...new Set(ordered)];
+    const owners = ownersForTeam(seasonId, team);
+    if (owners.length > 0) return owners;
     return [];
   };
 

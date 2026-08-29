@@ -150,7 +150,7 @@ export function AllTimeTable({ careers }: { careers: ManagerCareer[] }) {
         <TableHeader>
           <TableRow>
             <TableHead className="w-10 text-right">#</TableHead>
-            <TableHead>Manager</TableHead>
+            <TableHead>Team</TableHead>
             <TableHead>Record</TableHead>
             {columns.map((column) => (
               <TableHead key={column.id} className="text-right">

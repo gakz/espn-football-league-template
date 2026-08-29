@@ -76,7 +76,7 @@ function mergeManagers(existing: Manager[], fresh: Manager[]): Manager[] {
         ? {
             ...manager,
             slug: previous.slug,
-            name: previous.name === "Unknown manager" ? manager.name : previous.name,
+            name: previous.name === "Unknown team" ? manager.name : previous.name,
           }
         : manager,
     );
@@ -151,10 +151,10 @@ export default async (req: Request) => {
     `Wrote ${next.seasons.length} seasons and ${next.managers.length} managers to Netlify Blobs. Next run: ${event.next_run ?? "unknown"}`,
   );
 
-  const unnamed = next.managers.filter((manager) => manager.name === "Unknown manager");
+  const unnamed = next.managers.filter((manager) => manager.name === "Unknown team");
   if (unnamed.length > 0) {
     console.log(
-      `${unnamed.length} manager(s) have no display name from ESPN. Add them to data/owners.json:\n` +
+      `${unnamed.length} team(s) have no display name from ESPN. Add them to data/owners.json:\n` +
         unnamed.map((manager) => `  "${manager.id}": { "name": "..." }`).join("\n"),
     );
   }

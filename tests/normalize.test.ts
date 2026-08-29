@@ -40,6 +40,15 @@ describe("manager index", () => {
     expect(index.managers.filter((m) => m.name === "Dave Lindqvist")).toHaveLength(1);
   });
 
+  it("uses latest team names as default display names", () => {
+    expect(index.managers.find((m) => m.id === normalizeGuid(GUIDS.alice))?.name).toBe(
+      "Gridiron Gremlins",
+    );
+    expect(index.managers.find((m) => m.id === normalizeGuid(GUIDS.carol))?.name).toBe(
+      "Bayside Buccaneers",
+    );
+  });
+
   it("gives every manager a unique slug", () => {
     const slugs = index.managers.map((m) => m.slug);
     expect(new Set(slugs).size).toBe(slugs.length);

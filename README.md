@@ -60,12 +60,12 @@ up front which years are reachable. For local development against Netlify Blobs:
 netlify dev
 ```
 
-### Fixing up manager names
+### Fixing up display names
 
-Managers are keyed by ESPN member GUID rather than team name, since team names
-change every year. The ingest prints anyone it couldn't name, and
-`data/owners.json` is where you fix names, merge a manager's second ESPN
-account into one career, or reassign a team that changed hands. See
+Careers are displayed by latest ESPN team name but keyed by ESPN member GUID,
+since team names change every year. The refresh logs anyone it couldn't label,
+and `data/owners.json` is where you customize display names, merge a manager's
+second ESPN account into one career, or reassign a team that changed hands. See
 [`data/README.md`](data/README.md).
 
 ## Commands

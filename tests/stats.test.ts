@@ -186,7 +186,7 @@ describe("managerCareers", () => {
           : s,
       ),
     };
-    const alice = managerCareers(withGhost).find((c) => c.manager.name === "Alice Nakamura")!;
+    const alice = managerCareers(withGhost).find((c) => c.manager.name === "Gridiron Gremlins")!;
     expect(alice.seasons.some((s) => s.teamName === "Abandoned Slot")).toBe(false);
   });
 });

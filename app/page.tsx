@@ -30,7 +30,7 @@ export default async function Home() {
       <section className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">All-time standings</h1>
         <p className="text-muted-foreground">
-          {summary.seasonsPlayed} seasons, {summary.managerCount} managers,{" "}
+          {summary.seasonsPlayed} seasons, {summary.managerCount} teams,{" "}
           {formatPoints(summary.gamesPlayed, 0)} games played.
         </p>
       </section>
@@ -41,7 +41,7 @@ export default async function Home() {
           value={String(summary.seasonsPlayed)}
           detail={`${summary.firstSeason} to ${summary.lastSeason}`}
         />
-        <StatTile label="Managers" value={String(summary.managerCount)} detail="All-time" />
+        <StatTile label="Teams" value={String(summary.managerCount)} detail="All-time" />
         <StatTile
           label="Games"
           value={formatPoints(summary.gamesPlayed, 0)}

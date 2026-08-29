@@ -24,7 +24,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const career = (await loadLeagueView()).careers.find((c) => c.manager.slug === slug);
-  return { title: career?.manager.name ?? "Manager" };
+  return { title: career?.manager.name ?? "Team" };
 }
 
 export default async function ManagerPage({ params }: { params: Promise<{ slug: string }> }) {
