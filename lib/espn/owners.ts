@@ -54,14 +54,21 @@ export function buildManagerIndex(
     }
   }
 
-  const resolve = (guid: string): string => {
+  const teamNameToCanonical = new Map<string, string>();
+
+  const resolveConfiguredAlias = (guid: string): string => {
     const id = normalizeGuid(guid);
     return aliasToCanonical.get(id) ?? id;
   };
 
+  const resolve = (guid: string): string => {
+    const id = resolveConfiguredAlias(guid);
+    return teamNameToCanonical.get(id) ?? id;
+  };
+
   const overrides = new Map<string, string>();
   for (const [key, guid] of Object.entries(config.teamOverrides ?? {})) {
-    overrides.set(key, resolve(guid));
+    overrides.set(key, resolveConfiguredAlias(guid));
   }
 
   const ownersForTeam = (seasonId: number | undefined, team: EspnTeam): string[] => {
@@ -69,9 +76,9 @@ export function buildManagerIndex(
       seasonId === undefined ? undefined : overrides.get(`${seasonId}:${team.id}`);
     if (override) return [override];
 
-    const owners = (team.owners ?? []).map(resolve);
+    const owners = (team.owners ?? []).map(resolveConfiguredAlias);
     // Put the primary owner first so a co-managed team has a stable ordering.
-    const primary = team.primaryOwner ? resolve(team.primaryOwner) : undefined;
+    const primary = team.primaryOwner ? resolveConfiguredAlias(team.primaryOwner) : undefined;
     const ordered = primary ? [primary, ...owners] : owners;
     return [...new Set(ordered)];
   };
@@ -96,7 +103,7 @@ export function buildManagerIndex(
     }
     for (const member of league.members ?? []) {
       if (!member.id) continue;
-      const id = resolve(member.id);
+      const id = resolveConfiguredAlias(member.id);
       seen.add(id);
       const name =
         member.displayName?.trim() ||
@@ -112,13 +119,35 @@ export function buildManagerIndex(
     }
   }
 
-  for (const id of Object.keys(config.managers ?? {})) seen.add(normalizeGuid(id));
+  for (const id of Object.keys(config.managers ?? {})) seen.add(resolveConfiguredAlias(id));
+
+  const displayNameFor = (id: string): string => {
+    const override = config.managers?.[id] ?? config.managers?.[`{${id}}`];
+    return override?.name ?? teamNames.get(id) ?? accountNames.get(id) ?? "Unknown team";
+  };
+
+  const displayGroups = new Map<string, string[]>();
+  for (const id of seen) {
+    const name = displayNameFor(id);
+    displayGroups.set(name, [...(displayGroups.get(name) ?? []), id]);
+  }
+
+  // Once the UI is team-name based, duplicate display names should represent
+  // one career. This folds co-owners and re-registered ESPN accounts that share
+  // the same current team name before stats are computed.
+  for (const ids of displayGroups.values()) {
+    if (ids.length < 2) continue;
+    const sorted = [...ids].sort();
+    const configured = sorted.find((id) => config.managers?.[id] ?? config.managers?.[`{${id}}`]);
+    const canonical = configured ?? sorted[0];
+    for (const id of sorted) teamNameToCanonical.set(id, canonical);
+  }
 
   const usedSlugs = new Set<string>();
-  const managers: Manager[] = [...seen]
+  const managers: Manager[] = [...new Set([...seen].map(resolve))]
     .map((id) => {
+      const name = displayNameFor(id);
       const override = config.managers?.[id] ?? config.managers?.[`{${id}}`];
-      const name = override?.name ?? teamNames.get(id) ?? accountNames.get(id) ?? "Unknown team";
       return { id, name, slug: override?.slug ?? slugify(name) };
     })
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -130,7 +159,7 @@ export function buildManagerIndex(
     });
 
   const forTeam = (seasonId: number, team: EspnTeam): string[] => {
-    const owners = ownersForTeam(seasonId, team);
+    const owners = ownersForTeam(seasonId, team).map(resolve);
     if (owners.length > 0) return owners;
     return [];
   };

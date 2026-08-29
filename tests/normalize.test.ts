@@ -49,6 +49,23 @@ describe("manager index", () => {
     );
   });
 
+  it("collapses duplicate team display names into one career identity", () => {
+    const local = buildManagerIndex([
+      {
+        seasonId: 2024,
+        teams: [{ id: 1, name: "Downtown Plowtown", owners: [GUIDS.alice] }],
+      },
+      {
+        seasonId: 2025,
+        teams: [{ id: 1, name: "Downtown Plowtown", owners: [GUIDS.bob] }],
+      },
+    ]);
+
+    expect(local.managers).toHaveLength(1);
+    expect(local.managers[0].name).toBe("Downtown Plowtown");
+    expect(local.resolve(GUIDS.alice)).toBe(local.resolve(GUIDS.bob));
+  });
+
   it("gives every manager a unique slug", () => {
     const slugs = index.managers.map((m) => m.slug);
     expect(new Set(slugs).size).toBe(slugs.length);

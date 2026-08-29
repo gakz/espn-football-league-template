@@ -21,6 +21,13 @@ interface RefreshConfig {
   espnS2?: string;
   swid?: string;
   fullRefresh: boolean;
+  refreshReason: string;
+}
+
+function hasDuplicateManagerNames(data: LeagueData | null): boolean {
+  if (!data) return false;
+  const names = data.managers.map((manager) => manager.name).filter(Boolean);
+  return new Set(names).size !== names.length;
 }
 
 function env(name: string): string | undefined {
@@ -48,6 +55,9 @@ function readRefreshConfig(existing: LeagueData | null): RefreshConfig {
   }
 
   const mode = env("ESPN_REFRESH_MODE")?.toLowerCase();
+  const emptySnapshot = existing === null || existing.seasons.length === 0;
+  const duplicateNames = hasDuplicateManagerNames(existing);
+  const fullRefresh = mode === "full" || emptySnapshot || duplicateNames;
 
   return {
     leagueId: requireEnv("LEAGUE_ID"),
@@ -55,7 +65,15 @@ function readRefreshConfig(existing: LeagueData | null): RefreshConfig {
     lastSeason,
     espnS2: env("ESPN_S2"),
     swid: env("SWID"),
-    fullRefresh: mode === "full" || existing === null || existing.seasons.length === 0,
+    fullRefresh,
+    refreshReason:
+      mode === "full"
+        ? "ESPN_REFRESH_MODE=full"
+        : emptySnapshot
+          ? "empty Blob snapshot"
+          : duplicateNames
+            ? "duplicate team display names in Blob snapshot"
+            : "scheduled current-season refresh",
   };
 }
 
@@ -131,7 +149,7 @@ export default async (req: Request) => {
     : [config.lastSeason];
 
   console.log(
-    `Refreshing ESPN league ${config.leagueId}: ${config.fullRefresh ? "full" : "current-season"} (${seasons.join(", ")})`,
+    `Refreshing ESPN league ${config.leagueId}: ${config.fullRefresh ? "full" : "current-season"} (${config.refreshReason}; ${seasons.join(", ")})`,
   );
 
   const payloads = await fetchPayloads(config, seasons);
@@ -161,6 +179,7 @@ export default async (req: Request) => {
   return Response.json({
     ok: true,
     mode: config.fullRefresh ? "full" : "current-season",
+    reason: config.refreshReason,
     seasons,
     nextRun: event.next_run ?? null,
   });
