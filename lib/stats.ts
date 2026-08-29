@@ -41,6 +41,8 @@ export interface ManagerSeasonLine {
   teamName: string;
   regular: WLRecord;
   playoff: WLRecord;
+  /** Just the championship game, a subset of `playoff`. */
+  championship: WLRecord;
   combined: WLRecord;
   allPlay: WLRecord;
   finalRank: number | null;
@@ -62,6 +64,8 @@ export interface ManagerCareer {
   seasonsPlayed: number;
   regular: WLRecord;
   playoff: WLRecord;
+  /** Just championship games, a subset of `playoff`. */
+  championship: WLRecord;
   combined: WLRecord;
   allPlay: WLRecord;
   winPct: number;
@@ -70,6 +74,7 @@ export interface ManagerCareer {
   championships: number;
   runnerUps: number;
   playoffAppearances: number;
+  championshipAppearances: number;
   bestSeason: ManagerSeasonLine | null;
   worstSeason: ManagerSeasonLine | null;
   highestWeek: WeeklyScore | null;
@@ -234,6 +239,7 @@ export function managerCareers(data: LeagueData): ManagerCareer[] {
           teamName: team.teamName,
           regular: team.regular,
           playoff: team.playoff,
+          championship: team.championship,
           combined,
           allPlay: allPlayBySeason.get(season.id)?.get(team.teamId) ?? emptyRecord(),
           finalRank: team.finalRank,
@@ -251,6 +257,7 @@ export function managerCareers(data: LeagueData): ManagerCareer[] {
 
     const regular = lines.reduce((acc, l) => addRecord(acc, l.regular), emptyRecord());
     const playoff = lines.reduce((acc, l) => addRecord(acc, l.playoff), emptyRecord());
+    const championship = lines.reduce((acc, l) => addRecord(acc, l.championship), emptyRecord());
     const allPlay = lines.reduce((acc, l) => addRecord(acc, l.allPlay), emptyRecord());
     const combined = addRecord(regular, playoff);
 
@@ -270,6 +277,7 @@ export function managerCareers(data: LeagueData): ManagerCareer[] {
       seasonsPlayed: lines.length,
       regular,
       playoff,
+      championship,
       combined,
       allPlay,
       winPct: winPct(combined),
@@ -279,6 +287,7 @@ export function managerCareers(data: LeagueData): ManagerCareer[] {
       championships: lines.filter((l) => l.isChampion).length,
       runnerUps: lines.filter((l) => l.isRunnerUp).length,
       playoffAppearances: lines.filter((l) => l.madePlayoffs).length,
+      championshipAppearances: lines.filter((l) => gamesPlayed(l.championship) > 0).length,
       bestSeason: ranked[0] ?? null,
       worstSeason: ranked.length > 0 ? ranked[ranked.length - 1] : null,
       highestWeek: sortedByPoints[0] ?? null,

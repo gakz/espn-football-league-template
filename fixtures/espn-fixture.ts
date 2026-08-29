@@ -52,6 +52,28 @@ export interface SeasonFixtureOptions {
 
 const FIRST_MODERN_SEASON = 2018;
 
+/**
+ * Deterministic per-team roster, varying by `team.strength` (not a fresh RNG
+ * stream) so there's real spread across teams to average a position over —
+ * fixed identical values everywhere would make every Ring of Honor
+ * "points above position average" margin zero and untestable.
+ */
+// Matches normalize.ts's POSITION_LABELS mapping (2=RB, 3=WR, 4=TE).
+const ROSTER_TEMPLATE = [
+  { key: "Star", positionId: 2, base: 150, per: 20, seasons: [2016, 2017, 2021, 2024, 2025] },
+  { key: "Depth", positionId: 3, base: 60, per: 10, seasons: [2016, 2017, 2021] },
+  { key: "Rookie", positionId: 4, base: 30, per: 5, seasons: [2024, 2025] },
+];
+
+function rosterFor(team: FixtureTeam, season: number) {
+  return ROSTER_TEMPLATE.filter((p) => p.seasons.includes(season)).map((p, i) => ({
+    playerId: team.id * 100 + i + 1,
+    name: `${team.abbrev} ${p.key}`,
+    positionId: p.positionId,
+    points: p.base + p.per * team.strength,
+  }));
+}
+
 export function makeSeason(options: SeasonFixtureOptions): unknown {
   const {
     season,
@@ -278,6 +300,15 @@ export function makeSeason(options: SeasonFixtureOptions): unknown {
             pointsFor: Math.round(t.pf * 100) / 100,
             pointsAgainst: Math.round(t.pa * 100) / 100,
           },
+        },
+        roster: {
+          entries: rosterFor(team, season).map((p) => ({
+            playerId: p.playerId,
+            playerPoolEntry: {
+              player: { id: p.playerId, fullName: p.name, defaultPositionId: p.positionId },
+              appliedStatTotal: p.points,
+            },
+          })),
         },
       };
     }),

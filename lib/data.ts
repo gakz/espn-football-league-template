@@ -1,6 +1,8 @@
 import type { LeagueData } from "./types";
 import { leagueSummary, managerCareers, recordBook } from "./stats";
 import { readLeagueSnapshot } from "./league-store";
+import { ringOfHonorByManager, type RingOfHonorConfig } from "./ring-of-honor";
+import ringOfHonorConfig from "@/data/ring-of-honor.json";
 
 export const emptyLeague = (): LeagueData => ({
   leagueId: "",
@@ -32,6 +34,7 @@ export async function loadLeagueView() {
     careers,
     summary: leagueSummary(league, careers),
     records: recordBook(league, careers),
+    ringOfHonor: ringOfHonorByManager(league, careers, ringOfHonorConfig as RingOfHonorConfig),
     hasData: league.seasons.length > 0,
   };
 }

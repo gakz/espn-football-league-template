@@ -32,6 +32,16 @@ export interface Game {
   homeScore: number;
   awayScore: number;
   winner: "HOME" | "AWAY" | "TIE";
+  /** True for the single winners'-bracket final each season. Implies kind === "PLAYOFF". */
+  isChampionship: boolean;
+}
+
+export interface RosterEntry {
+  playerId: number;
+  playerName: string;
+  /** e.g. "QB"/"RB"/"D/ST", or "UNKNOWN" when ESPN's position id isn't recognized. */
+  position: string;
+  seasonPoints: number;
 }
 
 export interface TeamSeason {
@@ -44,9 +54,17 @@ export interface TeamSeason {
   managerIds: string[];
   regular: Record;
   playoff: Record;
+  /** Just the championship game, a subset of `playoff`. 1-0/0-1 in a normal season. */
+  championship: Record;
   finalRank: number | null;
   playoffSeed: number | null;
   madePlayoffs: boolean;
+  /**
+   * Roster as ESPN reported it at ingest time (typically end-of-season) — not
+   * a full in-season add/drop history. A player added and dropped between
+   * snapshots won't appear here. See lib/ring-of-honor.ts.
+   */
+  roster: RosterEntry[];
 }
 
 export interface Season {

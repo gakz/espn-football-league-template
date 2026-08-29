@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Trophy } from "lucide-react";
+import { Award, Trophy } from "lucide-react";
 import { StatTile } from "@/components/stat-tile";
+import { RingOfHonor } from "@/components/ring-of-honor";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -29,10 +30,12 @@ export async function generateMetadata({
 
 export default async function ManagerPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { careers } = await loadLeagueView();
+  const { careers, ringOfHonor } = await loadLeagueView();
   const career = careers.find((c) => c.manager.slug === slug);
 
   if (!career) notFound();
+
+  const ringOfHonorEntries = ringOfHonor.get(career.manager.id) ?? [];
 
   const streak = (s: typeof career.longestWinStreak) =>
     s.length > 0 && s.from && s.to
@@ -63,7 +66,7 @@ export default async function ManagerPage({ params }: { params: Promise<{ slug: 
         </p>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <StatTile
           label="Regular season"
           value={formatRecord(career.regular)}
@@ -73,6 +76,17 @@ export default async function ManagerPage({ params }: { params: Promise<{ slug: 
           label="Playoffs"
           value={formatRecord(career.playoff)}
           detail={`${career.playoffAppearances} appearances`}
+        />
+        <StatTile
+          label="Championship game"
+          value={
+            career.championshipAppearances > 0 ? formatRecord(career.championship) : "None"
+          }
+          detail={
+            career.championshipAppearances > 0
+              ? `${career.championshipAppearances} appearance${career.championshipAppearances === 1 ? "" : "s"}`
+              : undefined
+          }
         />
         <StatTile
           label="Points per game"
@@ -170,6 +184,14 @@ export default async function ManagerPage({ params }: { params: Promise<{ slug: 
             </TableBody>
           </Table>
         </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
+          <Award className="size-5" />
+          Ring of Honor
+        </h2>
+        <RingOfHonor entries={ringOfHonorEntries} />
       </section>
     </div>
   );
