@@ -3,6 +3,7 @@ import {
   emptyRecord,
   type Game,
   type GameKind,
+  type RosterEntry,
   type Season,
   type TeamSeason,
 } from "@/lib/types";
@@ -66,6 +67,38 @@ function toGame(matchup: EspnMatchup, seasonId: number, regularSeasonWeeks: numb
     // Resolved afterward, once the full bracket is known.
     isChampionship: false,
   };
+}
+
+const POSITION_LABELS: Record<number, string> = {
+  1: "QB",
+  2: "RB",
+  3: "WR",
+  4: "TE",
+  5: "K",
+  16: "D/ST",
+};
+
+function positionLabel(id: number | undefined): string {
+  return (id !== undefined && POSITION_LABELS[id]) || "UNKNOWN";
+}
+
+/** Roster as ESPN reported it at ingest time. See RosterEntry's doc comment. */
+function buildRoster(team: EspnTeam): RosterEntry[] {
+  const entries = team.roster?.entries ?? [];
+  return entries
+    .map((entry): RosterEntry | null => {
+      const player = entry.playerPoolEntry?.player;
+      const playerId = entry.playerId ?? player?.id;
+      const playerName = player?.fullName?.trim();
+      if (typeof playerId !== "number" || !playerName) return null;
+      return {
+        playerId,
+        playerName,
+        position: positionLabel(player?.defaultPositionId),
+        seasonPoints: entry.playerPoolEntry?.appliedStatTotal ?? 0,
+      };
+    })
+    .filter((entry): entry is RosterEntry => entry !== null);
 }
 
 /** Folds one game into the two teams' running records. */
@@ -201,6 +234,7 @@ export function normalizeSeason(
       championship: championship.get(team.id) ?? emptyRecord(),
       finalRank: team.rankCalculatedFinal ?? null,
       playoffSeed: team.playoffSeed ?? null,
+      roster: buildRoster(team),
       // Having played a bracket game is proof. Seeding is only a fallback for
       // finished seasons whose bracket ESPN no longer serves - mid-season it is
       // a projection, and projecting someone into the playoffs would quietly

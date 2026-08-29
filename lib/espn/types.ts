@@ -20,6 +20,33 @@ export interface EspnRecordSplit {
   pointsAgainst?: number;
 }
 
+export interface EspnPlayer {
+  id?: number;
+  fullName?: string;
+  /**
+   * ESPN's numeric position id (historically 1=QB, 2=RB, 3=WR, 4=TE, 5=K,
+   * 16=D/ST). UNVERIFIED against this league's real payload — no live ESPN
+   * access was available when this was written. normalize.ts must degrade
+   * gracefully for an id that isn't recognized.
+   */
+  defaultPositionId?: number;
+}
+
+export interface EspnPlayerPoolEntry {
+  player?: EspnPlayer;
+  /** Season-total fantasy points under the league's scoring, as of ingest time. */
+  appliedStatTotal?: number;
+}
+
+export interface EspnRosterEntry {
+  playerId?: number;
+  playerPoolEntry?: EspnPlayerPoolEntry;
+}
+
+export interface EspnRoster {
+  entries?: EspnRosterEntry[];
+}
+
 export interface EspnTeam {
   id?: number;
   abbrev?: string;
@@ -34,6 +61,7 @@ export interface EspnTeam {
   playoffSeed?: number;
   rankCalculatedFinal?: number;
   record?: { overall?: EspnRecordSplit };
+  roster?: EspnRoster;
 }
 
 export interface EspnMatchupSide {

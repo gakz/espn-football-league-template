@@ -292,3 +292,72 @@ describe("playoff appearances", () => {
     }
   });
 });
+
+describe("roster", () => {
+  it("includes the fixture's roster with position and season points", () => {
+    // Team 1 (Gridiron Gremlins, strength 3): Star (RB) and Rookie (TE) are the
+    // only slots rostered in 2024 — Depth only appears in 2016/2017/2021.
+    const team = bySeason.get(2024)!.teams.find((t) => t.teamId === 1)!;
+    const byName = new Map(team.roster.map((r) => [r.playerName, r]));
+    expect([...byName.keys()].sort()).toEqual(["GRE Rookie", "GRE Star"]);
+    expect(byName.get("GRE Star")).toMatchObject({ position: "RB", seasonPoints: 150 + 20 * 3 });
+    expect(byName.get("GRE Rookie")).toMatchObject({ position: "TE", seasonPoints: 30 + 5 * 3 });
+  });
+
+  it("only rosters Depth in the seasons it was kept", () => {
+    const team1 = (seasonId: number) => bySeason.get(seasonId)!.teams.find((t) => t.teamId === 1)!;
+    expect(team1(2016).roster.some((r) => r.playerName === "GRE Depth")).toBe(true);
+    expect(team1(2017).roster.some((r) => r.playerName === "GRE Depth")).toBe(true);
+    expect(team1(2021).roster.some((r) => r.playerName === "GRE Depth")).toBe(true);
+    expect(team1(2024).roster.some((r) => r.playerName === "GRE Depth")).toBe(false);
+  });
+
+  it("falls back to UNKNOWN for a position id it doesn't recognize", () => {
+    const payload = {
+      seasonId: 2024,
+      settings: { name: "L", scheduleSettings: { matchupPeriodCount: 1, playoffTeamCount: 2 } },
+      members: [{ id: GUIDS.alice, displayName: "Alice" }, { id: GUIDS.bob, displayName: "Bob" }],
+      teams: [
+        {
+          id: 1,
+          name: "A",
+          owners: [GUIDS.alice],
+          primaryOwner: GUIDS.alice,
+          roster: {
+            entries: [
+              {
+                playerId: 501,
+                playerPoolEntry: {
+                  player: { id: 501, fullName: "Mystery Player", defaultPositionId: 999 },
+                  appliedStatTotal: 42,
+                },
+              },
+            ],
+          },
+        },
+        { id: 2, name: "B", owners: [GUIDS.bob], primaryOwner: GUIDS.bob },
+      ],
+      schedule: [],
+    };
+    const season = normalizeSeason(payload, 2024, buildManagerIndex([payload]));
+    const team = season.teams.find((t) => t.teamId === 1)!;
+    expect(team.roster).toEqual([
+      { playerId: 501, playerName: "Mystery Player", position: "UNKNOWN", seasonPoints: 42 },
+    ]);
+  });
+
+  it("defaults to an empty roster when ESPN's payload has no roster key at all", () => {
+    const payload = {
+      seasonId: 2024,
+      settings: { name: "L", scheduleSettings: { matchupPeriodCount: 1, playoffTeamCount: 2 } },
+      members: [{ id: GUIDS.alice, displayName: "Alice" }, { id: GUIDS.bob, displayName: "Bob" }],
+      teams: [
+        { id: 1, name: "A", owners: [GUIDS.alice], primaryOwner: GUIDS.alice },
+        { id: 2, name: "B", owners: [GUIDS.bob], primaryOwner: GUIDS.bob },
+      ],
+      schedule: [],
+    };
+    const season = normalizeSeason(payload, 2024, buildManagerIndex([payload]));
+    expect(season.teams.every((t) => t.roster.length === 0)).toBe(true);
+  });
+});

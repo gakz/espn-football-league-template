@@ -12,6 +12,7 @@ The app does not read `data/league.json` in production.
 | `raw/<year>.json` | `npm run ingest` | Local/debug untouched ESPN payload for one season |
 | `league.json` | `npm run ingest` | Local/debug normalized model |
 | `owners.json` | you, by hand | Team display and identity fixes |
+| `ring-of-honor.json` | you, by hand | Manually-added Ring of Honor entries |
 
 ## Why the raw payloads are kept
 
@@ -48,3 +49,34 @@ things still need a human:
 
 The refresh logs any manager it couldn't find a name for, ready to paste in
 here.
+
+## ring-of-honor.json
+
+Manager pages auto-suggest Ring of Honor players (the standout player on a
+championship roster, and any player rostered 3+ seasons), but you can also add
+one by hand. Unlike `owners.json`, this file is read directly by the Next.js
+app at build time (see `lib/ring-of-honor.ts`) — editing it and redeploying is
+enough, no ESPN re-sync required. Keyed by manager **slug** (the part of the
+URL after `/managers/`), since you're looking at the live page while editing
+this, not digging a GUID out of the network tab:
+
+```json
+{
+  "some-managers-slug": [
+    {
+      "playerName": "Full Player Name",
+      "note": "Optional context for why they're here",
+      "seasonId": 2022,
+      "position": "Optional, only needed if there's no roster snapshot to infer it from"
+    }
+  ]
+}
+```
+
+If a manager's team name (and therefore their auto-generated slug) is likely
+to change, pin their slug in `owners.json`'s `managers.<guid>.slug` first —
+otherwise a later rename can silently orphan their Ring of Honor entries.
+
+A manual entry whose `playerName` matches an auto-suggested player (case- and
+whitespace-insensitive) merges into that same entry rather than creating a
+duplicate.

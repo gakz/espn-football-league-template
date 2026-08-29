@@ -36,6 +36,14 @@ export interface Game {
   isChampionship: boolean;
 }
 
+export interface RosterEntry {
+  playerId: number;
+  playerName: string;
+  /** e.g. "QB"/"RB"/"D/ST", or "UNKNOWN" when ESPN's position id isn't recognized. */
+  position: string;
+  seasonPoints: number;
+}
+
 export interface TeamSeason {
   seasonId: number;
   teamId: number;
@@ -51,6 +59,12 @@ export interface TeamSeason {
   finalRank: number | null;
   playoffSeed: number | null;
   madePlayoffs: boolean;
+  /**
+   * Roster as ESPN reported it at ingest time (typically end-of-season) — not
+   * a full in-season add/drop history. A player added and dropped between
+   * snapshots won't appear here. See lib/ring-of-honor.ts.
+   */
+  roster: RosterEntry[];
 }
 
 export interface Season {

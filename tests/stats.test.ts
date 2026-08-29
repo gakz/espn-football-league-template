@@ -202,6 +202,7 @@ describe("managerCareers", () => {
                   finalRank: null,
                   playoffSeed: null,
                   madePlayoffs: false,
+                  roster: [],
                 },
               ],
             }
