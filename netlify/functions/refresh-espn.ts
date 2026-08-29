@@ -76,7 +76,6 @@ function mergeManagers(existing: Manager[], fresh: Manager[]): Manager[] {
         ? {
             ...manager,
             slug: previous.slug,
-            name: previous.name === "Unknown team" ? manager.name : previous.name,
           }
         : manager,
     );
