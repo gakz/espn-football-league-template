@@ -26,6 +26,8 @@ type Row = {
   name: string;
   seasons: number;
   record: string;
+  playoffRecord: string;
+  championshipRecord: string;
   winPct: number;
   pointsFor: number;
   pointsAgainst: number;
@@ -35,7 +37,7 @@ type Row = {
   playoffs: number;
 };
 
-type ColumnId = keyof Omit<Row, "slug" | "record" | "name">;
+type ColumnId = keyof Omit<Row, "slug" | "record" | "playoffRecord" | "championshipRecord" | "name">;
 
 interface Column {
   id: ColumnId;
@@ -115,6 +117,9 @@ export function AllTimeTable({ careers }: { careers: ManagerCareer[] }) {
         name: career.manager.name,
         seasons: career.seasonsPlayed,
         record: formatRecord(career.combined),
+        playoffRecord: career.playoffAppearances > 0 ? formatRecord(career.playoff) : "-",
+        championshipRecord:
+          career.championshipAppearances > 0 ? formatRecord(career.championship) : "-",
         winPct: career.winPct,
         pointsFor: career.combined.pointsFor,
         pointsAgainst: career.combined.pointsAgainst,
@@ -152,6 +157,8 @@ export function AllTimeTable({ careers }: { careers: ManagerCareer[] }) {
             <TableHead className="w-10 text-right">#</TableHead>
             <TableHead>Team</TableHead>
             <TableHead>Record</TableHead>
+            <TableHead>Playoff record</TableHead>
+            <TableHead>Championship record</TableHead>
             {columns.map((column) => (
               <TableHead key={column.id} className="text-right">
                 <Tooltip>
@@ -191,6 +198,10 @@ export function AllTimeTable({ careers }: { careers: ManagerCareer[] }) {
                 </Link>
               </TableCell>
               <TableCell className="tabular text-muted-foreground">{row.record}</TableCell>
+              <TableCell className="tabular text-muted-foreground">{row.playoffRecord}</TableCell>
+              <TableCell className="tabular text-muted-foreground">
+                {row.championshipRecord}
+              </TableCell>
               {columns.map((column) => (
                 <TableCell key={column.id} className="tabular text-right">
                   {column.format(row)}

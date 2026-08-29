@@ -32,6 +32,8 @@ export interface Game {
   homeScore: number;
   awayScore: number;
   winner: "HOME" | "AWAY" | "TIE";
+  /** True for the single winners'-bracket final each season. Implies kind === "PLAYOFF". */
+  isChampionship: boolean;
 }
 
 export interface TeamSeason {
@@ -44,6 +46,8 @@ export interface TeamSeason {
   managerIds: string[];
   regular: Record;
   playoff: Record;
+  /** Just the championship game, a subset of `playoff`. 1-0/0-1 in a normal season. */
+  championship: Record;
   finalRank: number | null;
   playoffSeed: number | null;
   madePlayoffs: boolean;

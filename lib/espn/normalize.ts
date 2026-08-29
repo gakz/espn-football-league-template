@@ -63,6 +63,8 @@ function toGame(matchup: EspnMatchup, seasonId: number, regularSeasonWeeks: numb
     homeScore,
     awayScore,
     winner,
+    // Resolved afterward, once the full bracket is known.
+    isChampionship: false,
   };
 }
 
@@ -133,22 +135,28 @@ export function normalizeSeason(
   const playoffTeamCount =
     scheduleSettings?.playoffTeamCount ?? league.settings?.playoffTeamCount ?? 0;
 
-  const games = schedule
+  const unmarkedGames = schedule
     .map((m) => toGame(m, seasonId, regularSeasonWeeks))
     .filter((g): g is Game => g !== null)
     .sort((a, b) => a.week - b.week);
 
+  const final = titleGame(unmarkedGames);
+  const games = unmarkedGames.map((g) => (g === final ? { ...g, isChampionship: true } : g));
+
   const regular = new Map<number, ReturnType<typeof emptyRecord>>();
   const playoff = new Map<number, ReturnType<typeof emptyRecord>>();
+  const championship = new Map<number, ReturnType<typeof emptyRecord>>();
   for (const game of games) {
     if (game.kind === "REGULAR") applyGame(regular, game);
-    else if (game.kind === "PLAYOFF") applyGame(playoff, game);
+    else if (game.kind === "PLAYOFF") {
+      applyGame(playoff, game);
+      if (game.isChampionship) applyGame(championship, game);
+    }
     // Consolation games are deliberately excluded from both records: they don't
     // decide anything, and folding them in would inflate the win totals of
     // whoever missed the playoffs most often.
   }
 
-  const final = titleGame(games);
   const finalWinner = final
     ? final.winner === "HOME"
       ? final.homeTeamId
@@ -190,6 +198,7 @@ export function normalizeSeason(
       managerIds: index.forTeam(seasonId, team),
       regular: regular.get(team.id) ?? emptyRecord(),
       playoff: playoff.get(team.id) ?? emptyRecord(),
+      championship: championship.get(team.id) ?? emptyRecord(),
       finalRank: team.rankCalculatedFinal ?? null,
       playoffSeed: team.playoffSeed ?? null,
       // Having played a bracket game is proof. Seeding is only a fallback for

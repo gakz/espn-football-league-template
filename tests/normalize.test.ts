@@ -166,6 +166,40 @@ describe("normalizeSeason", () => {
     expect(archive.complete).toBe(true);
   });
 
+  it("marks exactly one playoff game per finished season as the championship", () => {
+    for (const season of seasons.filter((s) => s.complete)) {
+      const championshipGames = season.games.filter((g) => g.isChampionship);
+      expect(championshipGames).toHaveLength(1);
+      expect(championshipGames[0].kind).toBe("PLAYOFF");
+    }
+  });
+
+  it("credits the championship record to only the two teams in the title game", () => {
+    const season = bySeason.get(2024)!;
+    const final = season.games.find((g) => g.isChampionship)!;
+    for (const team of season.teams) {
+      const played = gamesPlayed(team.championship);
+      if (team.teamId === final.homeTeamId || team.teamId === final.awayTeamId) {
+        expect(played).toBe(1);
+      } else {
+        expect(played).toBe(0);
+      }
+    }
+    const champion = season.teams.find((t) => t.teamId === season.championTeamId)!;
+    const runnerUp = season.teams.find((t) => t.teamId === season.runnerUpTeamId)!;
+    expect(champion.championship.wins).toBe(1);
+    expect(runnerUp.championship.losses).toBe(1);
+  });
+
+  it("keeps the championship record a subset of the playoff record", () => {
+    for (const season of seasons.filter((s) => s.complete)) {
+      for (const team of season.teams) {
+        expect(gamesPlayed(team.championship)).toBeLessThanOrEqual(gamesPlayed(team.playoff));
+        expect(team.championship.wins).toBeLessThanOrEqual(team.playoff.wins);
+      }
+    }
+  });
+
   it("prefers ESPN's final ranking when it is present", () => {
     const modern = bySeason.get(2024)!;
     const ranked = modern.teams.find((t) => t.finalRank === 1)!;

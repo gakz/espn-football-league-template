@@ -63,7 +63,7 @@ export default async function ManagerPage({ params }: { params: Promise<{ slug: 
         </p>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <StatTile
           label="Regular season"
           value={formatRecord(career.regular)}
@@ -73,6 +73,17 @@ export default async function ManagerPage({ params }: { params: Promise<{ slug: 
           label="Playoffs"
           value={formatRecord(career.playoff)}
           detail={`${career.playoffAppearances} appearances`}
+        />
+        <StatTile
+          label="Championship game"
+          value={
+            career.championshipAppearances > 0 ? formatRecord(career.championship) : "None"
+          }
+          detail={
+            career.championshipAppearances > 0
+              ? `${career.championshipAppearances} appearance${career.championshipAppearances === 1 ? "" : "s"}`
+              : undefined
+          }
         />
         <StatTile
           label="Points per game"

@@ -108,6 +108,27 @@ describe("managerCareers", () => {
     expect(completed).toBe(4);
   });
 
+  it("totals the championship record to one appearance per completed season", () => {
+    const completed = data.seasons.filter((s) => s.complete).length;
+    const appearances = careers.reduce((s, c) => s + c.championshipAppearances, 0);
+    // Two teams play in every title game.
+    expect(appearances).toBe(completed * 2);
+
+    for (const career of careers) {
+      expect(gamesPlayed(career.championship)).toBe(career.championshipAppearances);
+      // A manager can only lose a title game they didn't win.
+      expect(career.championship.wins).toBeLessThanOrEqual(career.championshipAppearances);
+      expect(career.championship.wins).toBe(career.championships);
+    }
+  });
+
+  it("keeps the championship record a subset of the playoff record", () => {
+    for (const career of careers) {
+      expect(gamesPlayed(career.championship)).toBeLessThanOrEqual(gamesPlayed(career.playoff));
+      expect(career.championship.wins).toBeLessThanOrEqual(career.playoff.wins);
+    }
+  });
+
   it("computes win percentage with ties as half a win", () => {
     for (const career of careers) {
       expect(career.winPct).toBeCloseTo(winPct(career.combined), 10);
@@ -177,6 +198,7 @@ describe("managerCareers", () => {
                   managerIds: [index.resolve(GUIDS.alice)],
                   regular: { wins: 0, losses: 0, ties: 0, pointsFor: 0, pointsAgainst: 0 },
                   playoff: { wins: 0, losses: 0, ties: 0, pointsFor: 0, pointsAgainst: 0 },
+                  championship: { wins: 0, losses: 0, ties: 0, pointsFor: 0, pointsAgainst: 0 },
                   finalRank: null,
                   playoffSeed: null,
                   madePlayoffs: false,
