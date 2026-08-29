@@ -4,12 +4,12 @@ import { SetupPrompt } from "@/components/setup-prompt";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadLeagueView } from "@/lib/data";
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = { title: "Record book" };
 
-export default function RecordsPage() {
-  const { records, league, hasData } = loadLeagueView();
+export default async function RecordsPage() {
+  const { records, league, hasData } = await loadLeagueView();
 
   if (!hasData) return <SetupPrompt />;
 

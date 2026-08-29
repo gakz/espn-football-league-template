@@ -7,23 +7,23 @@ Built with Next.js, Tailwind and shadcn/ui, deployed on Netlify.
 
 ## How it works
 
-ESPN's Fantasy API is only reachable with your own signed-in cookies, so the
-site doesn't call it. Instead an ingest script you run locally pulls every
-season and writes JSON into `data/`, which is committed. Netlify builds from
-that committed JSON.
+ESPN's Fantasy API is only reachable with your own signed-in cookies. A Netlify
+scheduled function uses those cookies from Netlify environment variables, pulls
+ESPN, writes the league snapshot to Netlify Blobs, and the Next.js pages read
+that Blob at request time.
 
 ```
-ESPN v3 API  --(npm run ingest, on your machine)-->  data/*.json  --(git push)-->  Netlify
+ESPN v3 API  --(Netlify scheduled function)-->  Netlify Blobs  --(Next runtime)-->  pages
 ```
 
 Three things fall out of that:
 
-- **Your ESPN credentials never reach Netlify.** The deploy needs no secrets.
-- **The site can't break when ESPN does.** A committed season is yours for good,
-  which matters because ESPN restricted access to historical league data in
-  August 2025 and pre-2018 seasons have been disappearing.
-- **Updating during the season is a script run and a commit**, not a live fetch
-  on every page view.
+- **Your ESPN credentials live only in Netlify environment variables.** They are
+  not exposed to the browser.
+- **Pages do not call ESPN.** They read the most recent `league.json` snapshot
+  from Netlify Blobs.
+- **Updates happen on Netlify's schedule.** The function backfills all seasons
+  when the Blob is empty, then refreshes only the current season on later runs.
 
 ## Setup
 
@@ -32,29 +32,33 @@ npm install
 cp .env.example .env.local
 ```
 
-Fill in `.env.local`:
+For production, set these values in Netlify environment variables:
 
 - `LEAGUE_ID` — from the URL when you're viewing your league:
   `fantasy.espn.com/football/league?leagueId=XXXXXXX`
 - `FIRST_SEASON` — the four-digit year your league started
 - `ESPN_S2` and `SWID` — from a browser signed in to ESPN: DevTools →
   Application → Cookies → `espn.com`. Keep the curly braces on `SWID`.
+- Optional `LAST_SEASON` — override the newest season to fetch.
+- Optional `ESPN_REFRESH_MODE=full` — force every scheduled run to re-fetch all
+  seasons. Leave unset for normal current-season refreshes.
 
-Then check what ESPN will actually give you before committing to a full run:
+Deploy the site, then open Netlify's Functions UI and run the
+`refresh-espn` scheduled function once to seed the Blob. After that it runs
+weekly on Tuesday at 13:00 UTC.
+
+To check what ESPN will actually give you from your machine before deploying:
 
 ```bash
 npm run espn:check
 ```
 
 It probes every season with and without cookies and prints a table, so you know
-up front which years are reachable. Then:
+up front which years are reachable. For local development against Netlify Blobs:
 
 ```bash
-npm run ingest      # writes data/raw/*.json and data/league.json
-npm run dev         # http://localhost:3000
+netlify dev
 ```
-
-Commit `data/` and push. That's the deploy.
 
 ### Fixing up manager names
 
@@ -64,27 +68,19 @@ change every year. The ingest prints anyone it couldn't name, and
 account into one career, or reassign a team that changed hands. See
 [`data/README.md`](data/README.md).
 
-### No ESPN access handy?
-
-```bash
-npm run seed:fixtures
-```
-
-loads a sample league so you can see the site working.
-
 ## Commands
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Dev server |
-| `npm run build` | Production build; every page is prerendered |
+| `npm run dev` | Next dev server; use `netlify dev` when testing Blob reads |
+| `npm run build` | Production build |
 | `npm run test` | Unit tests for the normalizer and the record book |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm run ingest` | Pull all seasons from ESPN into `data/` |
-| `npm run ingest -- --season 2026` | Refresh one season |
-| `npm run ingest -- --force` | Re-fetch seasons already cached on disk |
+| `npm run ingest` | Local/debug pull into `data/`; production uses Netlify Blobs |
+| `npm run ingest -- --season 2026` | Local/debug pull for one season |
+| `npm run ingest -- --force` | Re-fetch seasons already cached on disk locally |
 | `npm run espn:check` | Report which seasons ESPN will serve you |
-| `npm run seed:fixtures` | Load the sample league |
+| `npm run seed:fixtures` | Write a local/debug sample `data/league.json` |
 
 Finished seasons are never re-fetched unless you pass `--force`; the current
 season always refreshes.
@@ -95,11 +91,13 @@ season always refreshes.
 app/                    Pages: all-time standings, record book, manager profiles
 components/             UI, including the vendored shadcn primitives in ui/
 lib/espn/               ESPN client, response types, normalizer, identity mapping
+lib/league-store.ts     Netlify Blobs read/write wrapper
 lib/stats.ts            All-time aggregates - pure functions, fully unit-tested
+netlify/functions/      Scheduled ESPN refresh function
 scripts/ingest.ts       The ingest
 scripts/check.ts        The reachability doctor
 fixtures/               Synthetic ESPN payloads used by the tests
-data/                   Committed league data (see data/README.md)
+data/                   Owners config and local/debug output (see data/README.md)
 ```
 
 ## How the stats are counted

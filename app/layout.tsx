@@ -4,23 +4,28 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
 import { loadLeague } from "@/lib/data";
 
-const league = loadLeague();
+export const dynamic = "force-dynamic";
 
-// Before the first ingest there is no league name, and the fallback already
-// reads as a title on its own - don't stutter it into "League History - League History".
-const hasData = league.seasons.length > 0;
+export async function generateMetadata(): Promise<Metadata> {
+  const league = await loadLeague();
+  // Before the first ingest there is no league name, and the fallback already
+  // reads as a title on its own - don't stutter it into "League History - League History".
+  const hasData = league.seasons.length > 0;
 
-export const metadata: Metadata = {
-  title: {
-    default: hasData ? `${league.leagueName} - League History` : league.leagueName,
-    template: `%s - ${league.leagueName}`,
-  },
-  description: hasData
-    ? `All-time standings, records and champions for ${league.leagueName}.`
-    : "All-time standings, records and champions for an ESPN fantasy football league.",
-};
+  return {
+    title: {
+      default: hasData ? `${league.leagueName} - League History` : league.leagueName,
+      template: `%s - ${league.leagueName}`,
+    },
+    description: hasData
+      ? `All-time standings, records and champions for ${league.leagueName}.`
+      : "All-time standings, records and champions for an ESPN fantasy football league.",
+  };
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const league = await loadLeague();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen antialiased">

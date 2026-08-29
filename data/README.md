@@ -1,22 +1,23 @@
 # data/
 
-Everything the site renders lives here, committed to the repo. The build reads
-these files; it never calls ESPN. That's deliberate — it keeps ESPN credentials
-off Netlify entirely, and it means the site still deploys on a day when ESPN is
-down or has dropped an old season from its archive.
+Production league data lives in Netlify Blobs. The scheduled
+`refresh-espn` function writes `league.json` plus raw ESPN season payloads under
+the `league-data` Blob store.
+
+This directory now holds hand-maintained configuration and local/debug output.
+The app does not read `data/league.json` in production.
 
 | File | Written by | What it is |
 |---|---|---|
-| `raw/<year>.json` | `npm run ingest` | The untouched ESPN payload for one season |
-| `league.json` | `npm run ingest` | The normalized model the pages read |
+| `raw/<year>.json` | `npm run ingest` | Local/debug untouched ESPN payload for one season |
+| `league.json` | `npm run ingest` | Local/debug normalized model |
 | `owners.json` | you, by hand | Manager identity fixes |
 
 ## Why the raw payloads are kept
 
-`league.json` only holds what the current pages need. Keeping the raw responses
-alongside it means adding a draft-history page or a head-to-head grid later is a
-pure code change — no cookies, no re-fetching a decade of seasons, and no risk
-that ESPN has since stopped serving an old year.
+`league.json` only holds what the current pages need. The scheduled function
+also stores raw responses in the Blob store, so adding a draft-history page or a
+head-to-head grid later can reuse the saved ESPN payloads.
 
 ## owners.json
 
@@ -44,5 +45,5 @@ season and can't identify anyone. Two things still need a human:
   manager — for a team that changed hands mid-league, or a co-managed team that
   should count for one person.
 
-`npm run ingest` prints any manager it couldn't find a name for, ready to paste
-in here.
+The refresh logs any manager it couldn't find a name for, ready to paste in
+here.

@@ -1,15 +1,11 @@
 /**
- * Pulls every season of the league from ESPN and writes two things into data/:
+ * Local/debug ESPN pull. Production refreshes happen in Netlify's scheduled
+ * function and are written to Netlify Blobs.
+ *
+ * This script writes two things into data/:
  *
  *   raw/<year>.json  the untouched ESPN payload
- *   league.json      the normalized model the site renders
- *
- * Both are committed. Keeping the raw payloads means adding a draft page or a
- * head-to-head grid later is a pure code change: no cookies, no re-fetching a
- * decade of history, and no risk that ESPN has since dropped an old season.
- *
- * Run it from your own machine — ESPN credentials never need to reach Netlify,
- * because the deploy builds from the committed JSON.
+ *   league.json      the normalized model for inspection
  *
  *   npm run ingest                 every season
  *   npm run ingest -- --season 2026  just one
@@ -17,9 +13,7 @@
  */
 import fs from "node:fs";
 import { fetchSeason } from "@/lib/espn/client";
-import { buildManagerIndex } from "@/lib/espn/owners";
-import { normalizeSeason } from "@/lib/espn/normalize";
-import type { LeagueData, Season } from "@/lib/types";
+import { buildLeagueData } from "@/lib/espn/build-league";
 import {
   LEAGUE_FILE,
   rawPath,
@@ -93,41 +87,19 @@ async function main() {
     process.exit(1);
   }
 
-  const owners = readOwnersConfig();
-  const index = buildManagerIndex(
-    payloads.map((p) => p.payload),
-    owners,
-  );
-
-  const normalized: Season[] = [];
-  for (const { season, payload } of payloads) {
-    try {
-      normalized.push(normalizeSeason(payload, season, index));
-    } catch (error) {
-      failures.push({
-        season,
-        message: `${season}: could not normalize the payload (${error instanceof Error ? error.message : String(error)})`,
-      });
-    }
-  }
-
-  normalized.sort((a, b) => a.id - b.id);
-
-  const league: LeagueData = {
+  const league = buildLeagueData({
     leagueId: config.leagueId,
-    leagueName: normalized.at(-1)?.leagueName ?? "League History",
-    generatedAt: new Date().toISOString(),
-    managers: index.managers,
-    seasons: normalized,
-  };
+    payloads,
+    owners: readOwnersConfig(),
+  });
 
   writeJson(LEAGUE_FILE, league);
 
   console.log(
-    `\nWrote ${normalized.length} seasons and ${index.managers.length} managers to data/league.json`,
+    `\nWrote ${league.seasons.length} seasons and ${league.managers.length} managers to data/league.json`,
   );
 
-  const unnamed = index.managers.filter((m) => m.name === "Unknown manager");
+  const unnamed = league.managers.filter((m) => m.name === "Unknown manager");
   if (unnamed.length > 0) {
     console.log(
       `\n${unnamed.length} manager(s) have no display name from ESPN. Add them to data/owners.json:\n` +
@@ -140,7 +112,7 @@ async function main() {
     for (const failure of failures) console.log(`  ${failure.message}`);
   }
 
-  console.log("\nCommit data/ to publish. Run `npm run dev` to see it locally.\n");
+  console.log("\nLocal/debug files written. Production reads from Netlify Blobs.\n");
 }
 
 main().catch((error) => {

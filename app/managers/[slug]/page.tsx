@@ -15,11 +15,7 @@ import { loadLeagueView } from "@/lib/data";
 import { formatPct, formatPoints, formatRecord, ordinal } from "@/lib/utils";
 import { gamesPlayed, winPct } from "@/lib/types";
 
-export const dynamic = "force-static";
-
-export function generateStaticParams() {
-  return loadLeagueView().careers.map((career) => ({ slug: career.manager.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -27,13 +23,13 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const career = loadLeagueView().careers.find((c) => c.manager.slug === slug);
+  const career = (await loadLeagueView()).careers.find((c) => c.manager.slug === slug);
   return { title: career?.manager.name ?? "Manager" };
 }
 
 export default async function ManagerPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const { careers } = loadLeagueView();
+  const { careers } = await loadLeagueView();
   const career = careers.find((c) => c.manager.slug === slug);
 
   if (!career) notFound();

@@ -1,9 +1,6 @@
-import fs from "node:fs";
-import path from "node:path";
 import type { LeagueData } from "./types";
 import { leagueSummary, managerCareers, recordBook } from "./stats";
-
-const LEAGUE_FILE = path.join(process.cwd(), "data", "league.json");
+import { readLeagueSnapshot } from "./league-store";
 
 export const emptyLeague = (): LeagueData => ({
   leagueId: "",
@@ -14,21 +11,21 @@ export const emptyLeague = (): LeagueData => ({
 });
 
 /**
- * Reads the committed league snapshot.
- *
- * A fresh clone has no data/league.json — the ingest hasn't been run yet — so
- * this returns an empty league rather than throwing. The pages render a setup
- * prompt in that case, which keeps `npm run build` working for anyone who
- * clones the repo before they have ESPN credentials in hand.
+ * Reads the canonical league snapshot from Netlify Blobs. When the Blob has
+ * not been seeded yet, the pages render a setup prompt instead of throwing.
  */
-export function loadLeague(): LeagueData {
-  if (!fs.existsSync(LEAGUE_FILE)) return emptyLeague();
-  return JSON.parse(fs.readFileSync(LEAGUE_FILE, "utf8")) as LeagueData;
+export async function loadLeague(): Promise<LeagueData> {
+  try {
+    return (await readLeagueSnapshot()) ?? emptyLeague();
+  } catch (error) {
+    console.warn("Could not read league snapshot from Netlify Blobs.", error);
+    return emptyLeague();
+  }
 }
 
-/** Everything the pages need, derived once per build. */
-export function loadLeagueView() {
-  const league = loadLeague();
+/** Everything the pages need, derived from the current Blob snapshot. */
+export async function loadLeagueView() {
+  const league = await loadLeague();
   const careers = managerCareers(league);
   return {
     league,
@@ -39,4 +36,4 @@ export function loadLeagueView() {
   };
 }
 
-export type LeagueView = ReturnType<typeof loadLeagueView>;
+export type LeagueView = Awaited<ReturnType<typeof loadLeagueView>>;

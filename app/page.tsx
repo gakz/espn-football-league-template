@@ -8,11 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { loadLeagueView } from "@/lib/data";
 import { formatPoints } from "@/lib/utils";
 
-// Everything renders from committed JSON, so there is nothing to do at request time.
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const { careers, summary, league, hasData } = loadLeagueView();
+export default async function Home() {
+  const { careers, summary, league, hasData } = await loadLeagueView();
 
   if (!hasData) return <SetupPrompt />;
 

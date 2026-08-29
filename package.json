@@ -16,6 +16,8 @@
     "seed:fixtures": "tsx scripts/seed-fixtures.ts"
   },
   "dependencies": {
+    "@netlify/blobs": "^11.0.2",
+    "@netlify/functions": "^6.0.0",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tooltip": "^1.2.8",

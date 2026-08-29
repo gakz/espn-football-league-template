@@ -1,6 +1,6 @@
 /**
- * Writes the fixture league into data/ so the site can be developed and
- * screenshotted without ESPN access at all.
+ * Writes the fixture league into data/ for local/debug model inspection.
+ * Production and the app runtime read from Netlify Blobs instead.
  *
  *   npm run seed:fixtures
  *
@@ -43,5 +43,5 @@ const league: LeagueData = {
 
 writeJson(LEAGUE_FILE, league);
 console.log(
-  `Seeded data/league.json with the sample league: ${league.seasons.length} seasons, ${league.managers.length} managers.`,
+  `Seeded local/debug data/league.json with the sample league: ${league.seasons.length} seasons, ${league.managers.length} managers.`,
 );
