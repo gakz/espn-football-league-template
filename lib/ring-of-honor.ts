@@ -1,5 +1,14 @@
-import type { LeagueData, Season } from "./types";
+import type { LeagueData, RosterEntry, Season, TeamSeason } from "./types";
 import type { ManagerCareer } from "./stats";
+
+/**
+ * `TeamSeason.roster` is typed as always-present, but a `LeagueData` snapshot
+ * already sitting in Netlify Blobs may have been written by an ingest that
+ * predates this field — the type only holds for data normalized after this
+ * was added. Guard every read so an older snapshot degrades to an empty
+ * roster (no Ring of Honor entries for that team-season) instead of throwing.
+ */
+const rosterOf = (team: TeamSeason): RosterEntry[] => team.roster ?? [];
 
 /**
  * Hand-editable Ring of Honor entries, committed at data/ring-of-honor.json.
@@ -44,7 +53,7 @@ export interface RingOfHonorEntry {
 export function positionAverages(season: Season): Map<string, number> {
   const totals = new Map<string, { sum: number; count: number }>();
   for (const team of season.teams) {
-    for (const entry of team.roster) {
+    for (const entry of rosterOf(team)) {
       const bucket = totals.get(entry.position) ?? { sum: 0, count: 0 };
       bucket.sum += entry.seasonPoints;
       bucket.count += 1;
@@ -114,10 +123,11 @@ function championshipStandouts(data: LeagueData, career: ManagerCareer) {
     const team = season.teams.find(
       (t) => t.teamId === season.championTeamId && t.managerIds.includes(career.manager.id),
     );
-    if (!team || team.roster.length === 0) continue;
+    const roster = team ? rosterOf(team) : [];
+    if (roster.length === 0) continue;
 
     const averages = positionAverages(season);
-    const best = [...team.roster]
+    const best = roster
       .map((entry) => ({ ...entry, margin: entry.seasonPoints - (averages.get(entry.position) ?? 0) }))
       .sort((a, b) => b.margin - a.margin || a.playerName.localeCompare(b.playerName))[0];
 
@@ -143,7 +153,7 @@ function longTenurePlayers(data: LeagueData, career: ManagerCareer) {
   for (const season of data.seasons) {
     for (const team of season.teams) {
       if (!team.managerIds.includes(career.manager.id)) continue;
-      for (const entry of team.roster) {
+      for (const entry of rosterOf(team)) {
         const key = dedupeKey(entry.playerName);
         const existing = byName.get(key);
         if (existing) {

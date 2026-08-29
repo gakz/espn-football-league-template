@@ -249,3 +249,89 @@ describe("ringOfHonorByManager", () => {
     }
   });
 });
+
+describe("legacy data without a roster field", () => {
+  // A LeagueData snapshot already sitting in Netlify Blobs may have been
+  // written by an ingest that predates TeamSeason.roster — the TS type only
+  // holds for data normalized after this feature shipped. `as unknown as`
+  // simulates that stale, untyped JSON coming back from storage.
+  const legacySeason = {
+    id: 2019,
+    leagueName: "Legacy League",
+    complete: true,
+    regularSeasonWeeks: 1,
+    playoffTeamCount: 0,
+    championTeamId: 1,
+    runnerUpTeamId: null,
+    games: [],
+    teams: [
+      {
+        seasonId: 2019,
+        teamId: 1,
+        teamName: "Old Guard",
+        abbrev: "OLD",
+        logo: null,
+        managerIds: ["M1"],
+        regular: emptyRecord(),
+        playoff: emptyRecord(),
+        championship: emptyRecord(),
+        finalRank: 1,
+        playoffSeed: 1,
+        madePlayoffs: true,
+        // No `roster` key at all.
+      },
+    ],
+  } as unknown as Season;
+
+  const legacyData: LeagueData = {
+    leagueId: "legacy",
+    leagueName: "Legacy League",
+    generatedAt: "2019-01-01T00:00:00.000Z",
+    managers: [{ id: "M1", slug: "old-guard", name: "Old Guard" }],
+    seasons: [legacySeason],
+  };
+
+  const legacyCareer: ManagerCareer = {
+    manager: legacyData.managers[0],
+    seasons: [],
+    seasonsPlayed: 1,
+    regular: emptyRecord(),
+    playoff: emptyRecord(),
+    championship: emptyRecord(),
+    combined: emptyRecord(),
+    allPlay: emptyRecord(),
+    winPct: 0,
+    allPlayWinPct: 0,
+    pointsPerGame: 0,
+    championships: 1,
+    runnerUps: 0,
+    playoffAppearances: 1,
+    championshipAppearances: 1,
+    bestSeason: null,
+    worstSeason: null,
+    highestWeek: null,
+    lowestWeek: null,
+    longestWinStreak: { length: 0, from: null, to: null },
+    longestLoseStreak: { length: 0, from: null, to: null },
+    championshipSeasons: [2019],
+  };
+
+  it("doesn't throw, and degrades to no auto-suggested entries", () => {
+    expect(() => ringOfHonorForManager(legacyData, legacyCareer, {})).not.toThrow();
+    expect(ringOfHonorForManager(legacyData, legacyCareer, {})).toEqual([]);
+  });
+
+  it("still honors a manual entry even when the roster snapshot is missing", () => {
+    const config: RingOfHonorConfig = {
+      "old-guard": [{ playerName: "Hand-Added Player", note: "Added before rosters were tracked." }],
+    };
+    const entries = ringOfHonorForManager(legacyData, legacyCareer, config);
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toMatchObject({ playerName: "Hand-Added Player", manual: true, playerId: null });
+  });
+
+  it("positionAverages returns an empty map rather than throwing", () => {
+    expect(() => positionAverages(legacySeason)).not.toThrow();
+    expect(positionAverages(legacySeason).size).toBe(0);
+  });
+});
