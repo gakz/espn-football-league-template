@@ -1,5 +1,7 @@
 /**
  * Writes the fixture league into data/ for local/debug model inspection.
+ * The snapshot always uses the fixed non-production leagueId "fixture"; it does
+ * not read or copy LEAGUE_ID from your environment.
  * Production and the app runtime read from Netlify Blobs instead.
  *
  *   npm run seed:fixtures

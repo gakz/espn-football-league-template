@@ -1,0 +1,240 @@
+{
+  "leagueId": "example-football-league",
+  "leagueName": "Example Football League",
+  "generatedAt": "2026-01-01T00:00:00.000Z",
+  "managers": [
+    {
+      "id": "EXAMPLE-MANAGER-0001",
+      "slug": "red-zone-royalty",
+      "name": "Red Zone Royalty"
+    },
+    {
+      "id": "EXAMPLE-MANAGER-0002",
+      "slug": "waiver-wire-wizards",
+      "name": "Waiver Wire Wizards"
+    },
+    {
+      "id": "EXAMPLE-MANAGER-0003",
+      "slug": "bye-week-bandits",
+      "name": "Bye Week Bandits"
+    },
+    {
+      "id": "EXAMPLE-MANAGER-0004",
+      "slug": "monday-night-miracles",
+      "name": "Monday Night Miracles"
+    }
+  ],
+  "seasons": [
+    {
+      "id": 2025,
+      "leagueName": "Example Football League",
+      "complete": true,
+      "regularSeasonWeeks": 2,
+      "playoffTeamCount": 2,
+      "teams": [
+        {
+          "seasonId": 2025,
+          "teamId": 1,
+          "teamName": "Red Zone Royalty",
+          "abbrev": "RZR",
+          "logo": null,
+          "managerIds": ["EXAMPLE-MANAGER-0001"],
+          "regular": {
+            "wins": 2,
+            "losses": 0,
+            "ties": 0,
+            "pointsFor": 245,
+            "pointsAgainst": 220
+          },
+          "playoff": {
+            "wins": 1,
+            "losses": 0,
+            "ties": 0,
+            "pointsFor": 130,
+            "pointsAgainst": 118
+          },
+          "championship": {
+            "wins": 1,
+            "losses": 0,
+            "ties": 0,
+            "pointsFor": 130,
+            "pointsAgainst": 118
+          },
+          "finalRank": 1,
+          "playoffSeed": 1,
+          "madePlayoffs": true,
+          "roster": []
+        },
+        {
+          "seasonId": 2025,
+          "teamId": 2,
+          "teamName": "Waiver Wire Wizards",
+          "abbrev": "WWW",
+          "logo": null,
+          "managerIds": ["EXAMPLE-MANAGER-0002"],
+          "regular": {
+            "wins": 1,
+            "losses": 1,
+            "ties": 0,
+            "pointsFor": 235,
+            "pointsAgainst": 232
+          },
+          "playoff": {
+            "wins": 0,
+            "losses": 1,
+            "ties": 0,
+            "pointsFor": 118,
+            "pointsAgainst": 130
+          },
+          "championship": {
+            "wins": 0,
+            "losses": 1,
+            "ties": 0,
+            "pointsFor": 118,
+            "pointsAgainst": 130
+          },
+          "finalRank": 2,
+          "playoffSeed": 2,
+          "madePlayoffs": true,
+          "roster": []
+        },
+        {
+          "seasonId": 2025,
+          "teamId": 3,
+          "teamName": "Bye Week Bandits",
+          "abbrev": "BWB",
+          "logo": null,
+          "managerIds": ["EXAMPLE-MANAGER-0003"],
+          "regular": {
+            "wins": 1,
+            "losses": 1,
+            "ties": 0,
+            "pointsFor": 215,
+            "pointsAgainst": 223
+          },
+          "playoff": {
+            "wins": 0,
+            "losses": 0,
+            "ties": 0,
+            "pointsFor": 0,
+            "pointsAgainst": 0
+          },
+          "championship": {
+            "wins": 0,
+            "losses": 0,
+            "ties": 0,
+            "pointsFor": 0,
+            "pointsAgainst": 0
+          },
+          "finalRank": 3,
+          "playoffSeed": 3,
+          "madePlayoffs": false,
+          "roster": []
+        },
+        {
+          "seasonId": 2025,
+          "teamId": 4,
+          "teamName": "Monday Night Miracles",
+          "abbrev": "MNM",
+          "logo": null,
+          "managerIds": ["EXAMPLE-MANAGER-0004"],
+          "regular": {
+            "wins": 0,
+            "losses": 2,
+            "ties": 0,
+            "pointsFor": 210,
+            "pointsAgainst": 230
+          },
+          "playoff": {
+            "wins": 0,
+            "losses": 0,
+            "ties": 0,
+            "pointsFor": 0,
+            "pointsAgainst": 0
+          },
+          "championship": {
+            "wins": 0,
+            "losses": 0,
+            "ties": 0,
+            "pointsFor": 0,
+            "pointsAgainst": 0
+          },
+          "finalRank": 4,
+          "playoffSeed": 4,
+          "madePlayoffs": false,
+          "roster": []
+        }
+      ],
+      "games": [
+        {
+          "seasonId": 2025,
+          "week": 1,
+          "kind": "REGULAR",
+          "homeTeamId": 1,
+          "awayTeamId": 2,
+          "homeScore": 120,
+          "awayScore": 110,
+          "winner": "HOME",
+          "isChampionship": false
+        },
+        {
+          "seasonId": 2025,
+          "week": 1,
+          "kind": "REGULAR",
+          "homeTeamId": 3,
+          "awayTeamId": 4,
+          "homeScore": 105,
+          "awayScore": 98,
+          "winner": "HOME",
+          "isChampionship": false
+        },
+        {
+          "seasonId": 2025,
+          "week": 2,
+          "kind": "REGULAR",
+          "homeTeamId": 3,
+          "awayTeamId": 1,
+          "homeScore": 110,
+          "awayScore": 125,
+          "winner": "AWAY",
+          "isChampionship": false
+        },
+        {
+          "seasonId": 2025,
+          "week": 2,
+          "kind": "REGULAR",
+          "homeTeamId": 2,
+          "awayTeamId": 4,
+          "homeScore": 125,
+          "awayScore": 112,
+          "winner": "HOME",
+          "isChampionship": false
+        },
+        {
+          "seasonId": 2025,
+          "week": 3,
+          "kind": "PLAYOFF",
+          "homeTeamId": 1,
+          "awayTeamId": 2,
+          "homeScore": 130,
+          "awayScore": 118,
+          "winner": "HOME",
+          "isChampionship": true
+        },
+        {
+          "seasonId": 2025,
+          "week": 3,
+          "kind": "CONSOLATION",
+          "homeTeamId": 3,
+          "awayTeamId": 4,
+          "homeScore": 115,
+          "awayScore": 99,
+          "winner": "HOME",
+          "isChampionship": false
+        }
+      ],
+      "championTeamId": 1,
+      "runnerUpTeamId": 2
+    }
+  ]
+}

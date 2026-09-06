@@ -11,8 +11,14 @@ The app does not read `data/league.json` in production.
 |---|---|---|
 | `raw/<year>.json` | `npm run ingest` | Local/debug untouched ESPN payload for one season |
 | `league.json` | `npm run ingest` | Local/debug normalized model |
+| `example-league.json` | checked in | Sanitized example normalized model with no real ESPN league ID |
 | `owners.json` | you, by hand | Team display and identity fixes |
 | `ring-of-honor.json` | you, by hand | Manually-added Ring of Honor entries |
+
+`data/league.json` and `data/raw/` are gitignored because they can contain a
+real league ID, manager GUIDs, team names, and roster snapshots. The checked-in
+`example-league.json` uses fake IDs and names, and exists only as a schema
+example.
 
 ## Why the raw payloads are kept
 

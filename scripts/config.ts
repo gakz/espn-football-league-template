@@ -24,6 +24,25 @@ function fail(message: string): never {
   process.exit(1);
 }
 
+function readInteger(name: string, fallback?: number): number {
+  const raw = process.env[name]?.trim();
+  if (!raw) {
+    if (fallback === undefined) fail(`${name} is not set.`);
+    return fallback;
+  }
+
+  const value = Number(raw);
+  if (!Number.isInteger(value)) fail(`${name} must be an integer.`);
+  return value;
+}
+
+function defaultLastSeason(): number {
+  // ESPN fantasy football seasons are named for the calendar year they start.
+  // Before roughly August, the newest season that exists is last year's.
+  const now = new Date();
+  return now.getUTCMonth() >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+}
+
 export function readConfig(): IngestConfig {
   const leagueId = process.env.LEAGUE_ID?.trim();
   if (!leagueId) {
@@ -34,15 +53,14 @@ export function readConfig(): IngestConfig {
     );
   }
 
-  const firstSeason = Number(process.env.FIRST_SEASON);
-  if (!Number.isInteger(firstSeason) || firstSeason < 2000) {
+  const firstSeason = readInteger("FIRST_SEASON");
+  if (firstSeason < 2000) {
     fail("FIRST_SEASON must be the four-digit year your league started, e.g. 2015.");
   }
 
-  // The fantasy season is named for the calendar year it starts in, so before
-  // roughly August the newest season that exists is last year's.
-  const now = new Date();
-  const lastSeason = now.getUTCMonth() >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+  const lastSeason = process.env.LAST_SEASON?.trim()
+    ? readInteger("LAST_SEASON")
+    : defaultLastSeason();
 
   if (lastSeason < firstSeason) {
     fail(`FIRST_SEASON (${firstSeason}) is in the future; nothing to ingest.`);

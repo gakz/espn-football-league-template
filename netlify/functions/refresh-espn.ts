@@ -40,17 +40,31 @@ function requireEnv(name: string): string {
   return value;
 }
 
+function readInteger(name: string, fallback?: number): number {
+  const raw = env(name);
+  if (!raw) {
+    if (fallback === undefined) throw new Error(`${name} is not set.`);
+    return fallback;
+  }
+
+  const value = Number(raw);
+  if (!Number.isInteger(value)) throw new Error(`${name} must be an integer.`);
+  return value;
+}
+
+function defaultLastSeason(): number {
+  const now = new Date();
+  return now.getUTCMonth() >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
+}
+
 function readRefreshConfig(existing: LeagueData | null): RefreshConfig {
-  const firstSeason = Number(requireEnv("FIRST_SEASON"));
-  if (!Number.isInteger(firstSeason) || firstSeason < 2000) {
+  const firstSeason = readInteger("FIRST_SEASON");
+  if (firstSeason < 2000) {
     throw new Error("FIRST_SEASON must be the four-digit year your league started.");
   }
 
-  const now = new Date();
-  const defaultLastSeason =
-    now.getUTCMonth() >= 7 ? now.getUTCFullYear() : now.getUTCFullYear() - 1;
-  const lastSeason = Number(env("LAST_SEASON") ?? defaultLastSeason);
-  if (!Number.isInteger(lastSeason) || lastSeason < firstSeason) {
+  const lastSeason = env("LAST_SEASON") ? readInteger("LAST_SEASON") : defaultLastSeason();
+  if (lastSeason < firstSeason) {
     throw new Error("LAST_SEASON must be greater than or equal to FIRST_SEASON.");
   }
 
@@ -140,7 +154,7 @@ function updateLeagueSnapshot(
   };
 }
 
-export default async (req: Request) => {
+const handler = async (req: Request) => {
   const event = (await req.json().catch(() => ({}))) as { next_run?: string };
   const existing = await readLeagueSnapshot();
   const config = readRefreshConfig(existing);
@@ -184,6 +198,8 @@ export default async (req: Request) => {
     nextRun: event.next_run ?? null,
   });
 };
+
+export default handler;
 
 export const config: Config = {
   schedule: "0 13 * * 2",
