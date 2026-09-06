@@ -23,12 +23,6 @@ export function SiteHeader({
           <span className="truncate">{leagueName}</span>
         </Link>
         <nav className="flex items-center gap-4 text-sm">
-          <Link
-            href="/"
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            All-time
-          </Link>
           <details className="group relative">
             <summary className="text-muted-foreground hover:text-foreground flex cursor-pointer list-none items-center gap-1 transition-colors outline-none focus-visible:text-foreground [&::-webkit-details-marker]:hidden">
               Teams
