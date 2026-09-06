@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ExampleDataNotice } from "@/components/example-data-notice";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
 import { isExampleLeague, loadLeague } from "@/lib/data";
@@ -34,12 +35,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SiteHeader leagueName={league.leagueName} />
           <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
           <footer className="text-muted-foreground mx-auto max-w-6xl px-4 pb-10 text-xs">
-            {example
-              ? "Showing checked-in example data. Set Netlify environment variables and run refresh-espn to replace it with your ESPN league."
-              : league.generatedAt
-                ? `Data pulled from ESPN on ${new Date(league.generatedAt).toLocaleDateString("en-US", { dateStyle: "medium" })}.`
-                : null}
+            {!example && league.generatedAt
+              ? `Data pulled from ESPN on ${new Date(league.generatedAt).toLocaleDateString("en-US", { dateStyle: "medium" })}.`
+              : null}
           </footer>
+          {example ? <ExampleDataNotice /> : null}
         </ThemeProvider>
       </body>
     </html>

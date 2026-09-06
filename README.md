@@ -106,7 +106,8 @@ netlify dev
 sanitized `LeagueData` snapshot with fake IDs and teams. Use it as a schema
 reference when wiring up a new league. Fresh deploys show this example data
 until the `refresh-espn` function writes a real `league.json` snapshot to
-Netlify Blobs.
+Netlify Blobs. While example data is showing, the site displays a fixed setup
+card with the steps needed to replace it.
 
 `npm run seed:fixtures` writes a fuller local sample to `data/league.json` with
 the fixed non-production league ID `fixture`. Real local ingest output
