@@ -3,7 +3,7 @@ import "./globals.css";
 import { ExampleDataNotice } from "@/components/example-data-notice";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
-import { isExampleLeague, loadLeague } from "@/lib/data";
+import { isExampleLeague, loadLeague, loadLeagueView } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -25,14 +25,19 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const league = await loadLeague();
+  const { league, careers } = await loadLeagueView();
   const example = isExampleLeague(league);
+  const teams = careers.map((career) => ({
+    slug: career.manager.slug,
+    label: career.manager.name,
+    detail: `${career.seasonsPlayed} season${career.seasonsPlayed === 1 ? "" : "s"}`,
+  }));
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <SiteHeader leagueName={league.leagueName} />
+          <SiteHeader leagueName={league.leagueName} teams={teams} />
           <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
           <footer className="text-muted-foreground mx-auto max-w-6xl px-4 pb-10 text-xs">
             {!example && league.generatedAt
