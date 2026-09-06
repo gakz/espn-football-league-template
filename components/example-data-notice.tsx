@@ -1,5 +1,7 @@
-import { Info } from "lucide-react";
+import { ExternalLink, Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+const SETUP_DIRECTIONS_URL = "https://github.com/gakz/ffl-template#readme";
 
 export function ExampleDataNotice() {
   return (
@@ -12,6 +14,15 @@ export function ExampleDataNotice() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 px-4 text-sm">
+          <a
+            href={SETUP_DIRECTIONS_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="text-foreground hover:text-trophy inline-flex items-center gap-1.5 font-medium transition-colors"
+          >
+            Setup directions on GitHub
+            <ExternalLink className="size-3.5" />
+          </a>
           <ol className="text-muted-foreground list-decimal space-y-1.5 pl-4">
             <li>
               Set <code className="text-foreground">LEAGUE_ID</code>,{" "}
