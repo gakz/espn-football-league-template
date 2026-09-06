@@ -24,7 +24,8 @@ Three things fall out of that:
 - **Your ESPN credentials live only in Netlify environment variables.** They are
   not exposed to the browser.
 - **Pages do not call ESPN.** They read the most recent `league.json` snapshot
-  from Netlify Blobs.
+  from Netlify Blobs. Until that snapshot exists, the deployed site shows the
+  checked-in example league data.
 - **Updates happen on Netlify's schedule.** The function backfills all seasons
   when the Blob is empty, then refreshes only the current season on later runs.
 
@@ -103,7 +104,9 @@ netlify dev
 
 [`data/example-league.json`](data/example-league.json) is a checked-in,
 sanitized `LeagueData` snapshot with fake IDs and teams. Use it as a schema
-reference when wiring up a new league.
+reference when wiring up a new league. Fresh deploys show this example data
+until the `refresh-espn` function writes a real `league.json` snapshot to
+Netlify Blobs.
 
 `npm run seed:fixtures` writes a fuller local sample to `data/league.json` with
 the fixed non-production league ID `fixture`. Real local ingest output

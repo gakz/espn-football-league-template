@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
-import { loadLeague } from "@/lib/data";
+import { isExampleLeague, loadLeague } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const league = await loadLeague();
+  const example = isExampleLeague(league);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -33,9 +34,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <SiteHeader leagueName={league.leagueName} />
           <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
           <footer className="text-muted-foreground mx-auto max-w-6xl px-4 pb-10 text-xs">
-            {league.generatedAt
-              ? `Data pulled from ESPN on ${new Date(league.generatedAt).toLocaleDateString("en-US", { dateStyle: "medium" })}.`
-              : null}
+            {example
+              ? "Showing checked-in example data. Set Netlify environment variables and run refresh-espn to replace it with your ESPN league."
+              : league.generatedAt
+                ? `Data pulled from ESPN on ${new Date(league.generatedAt).toLocaleDateString("en-US", { dateStyle: "medium" })}.`
+                : null}
           </footer>
         </ThemeProvider>
       </body>

@@ -2,7 +2,10 @@ import type { LeagueData } from "./types";
 import { leagueSummary, managerCareers, recordBook } from "./stats";
 import { readLeagueSnapshot } from "./league-store";
 import { ringOfHonorByManager, type RingOfHonorConfig } from "./ring-of-honor";
+import exampleLeagueSnapshot from "@/data/example-league.json";
 import ringOfHonorConfig from "@/data/ring-of-honor.json";
+
+export const EXAMPLE_LEAGUE_ID = "example-football-league";
 
 export const emptyLeague = (): LeagueData => ({
   leagueId: "",
@@ -12,16 +15,24 @@ export const emptyLeague = (): LeagueData => ({
   seasons: [],
 });
 
+export const exampleLeague = (): LeagueData => exampleLeagueSnapshot as LeagueData;
+
+export function isExampleLeague(league: LeagueData): boolean {
+  return league.leagueId === EXAMPLE_LEAGUE_ID;
+}
+
 /**
  * Reads the canonical league snapshot from Netlify Blobs. When the Blob has
- * not been seeded yet, the pages render a setup prompt instead of throwing.
+ * not been seeded yet, the pages render checked-in example data so a fresh
+ * template deploy has useful content before the first ESPN refresh.
  */
 export async function loadLeague(): Promise<LeagueData> {
   try {
-    return (await readLeagueSnapshot()) ?? emptyLeague();
+    const snapshot = await readLeagueSnapshot();
+    return snapshot && snapshot.seasons.length > 0 ? snapshot : exampleLeague();
   } catch (error) {
     console.warn("Could not read league snapshot from Netlify Blobs.", error);
-    return emptyLeague();
+    return exampleLeague();
   }
 }
 
